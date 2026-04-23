@@ -102,20 +102,31 @@ if ss:
     if p_total or r_total:
         df_finais = pd.DataFrame(p_total + r_total)
         
-        # Garante que as colunas estejam na ordem certa
+        # GARANTIA: Forçamos a coluna Valor a ser numérica (float)
+        # Se houver algum erro de conversão, ele vira 0 em vez de quebrar o script
+        df_finais['Valor'] = pd.to_numeric(df_finais['Valor'], errors='coerce').fillna(0)
+        
+        # Selecionamos as colunas na ordem correta
         df_finais = df_finais[['Vencimento', 'Empresa', 'Tipo', 'Valor']]
         
         try:
-            # Tenta encontrar a aba Base_Looker ou cria uma
             try:
                 worksheet = ss.worksheet("Base_Looker")
             except:
                 worksheet = ss.add_worksheet(title="Base_Looker", rows="5000", cols="5")
             
             worksheet.clear()
-            # Converte DataFrame para lista de listas (formato que o gspread aceita)
-            exportar = [df_finais.columns.values.tolist()] + df_finais.astype(str).values.tolist()
+
+            # PREPARAÇÃO PARA O GOOGLE SHEETS:
+            # Mantemos as colunas Vencimento, Empresa e Tipo como string,
+            # mas o Valor será enviado como o número puro do Python.
+            cabecalho = df_finais.columns.values.tolist()
+            
+            # Criamos a lista de dados. 
+            # Dica: O gspread aceita números nativos do Python (int/float)
+            corpo_dados = df_finais.values.tolist()
+            
+            exportar = [cabecalho] + corpo_dados
+            
             worksheet.update(exportar)
-            print("Sincronização Finalizada! Looker Studio atualizado.")
-        except Exception as e:
-            print(f"Erro ao salvar na planilha: {e}")
+            print("Sincronização Finalizada! Dados enviados como números para o Looker.")
