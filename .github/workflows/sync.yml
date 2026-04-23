@@ -5,6 +5,10 @@ on:
     - cron: '0 9 * * *' 
   workflow_dispatch: 
 
+# Resolve o aviso do Node.js 24
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -21,21 +25,18 @@ jobs:
         run: |
           pip install pandas requests gspread oauth2client
 
-      # --- NOVO PASSO DE TESTE ---
-      - name: Verificar Segredos (Sem expor valores)
+      - name: Verificar Segredos
         env:
           GOOGLE_SHEETS_JSON: ${{ secrets.GOOGLE_SHEETS_JSON }}
           CONTA_AZUL_CLIENT_ID: ${{ secrets.CONTA_AZUL_CLIENT_ID }}
-          CONTA_AZUL_CLIENT_SECRET: ${{ secrets.CONTA_AZUL_CLIENT_SECRET }}
         run: |
-          echo "Verificando variáveis de ambiente..."
-          if [ -z "$GOOGLE_SHEETS_JSON" ]; then echo "❌ Erro: GOOGLE_SHEETS_JSON está vazio"; exit 1; else echo "✅ GOOGLE_SHEETS_JSON carregado"; fi
-          if [ -z "$CONTA_AZUL_CLIENT_ID" ]; then echo "❌ Erro: CLIENT_ID está vazio"; exit 1; else echo "✅ CLIENT_ID carregado"; fi
-          if [ -z "$CONTA_AZUL_CLIENT_SECRET" ]; then echo "❌ Erro: CLIENT_SECRET está vazio"; exit 1; else echo "✅ CLIENT_SECRET carregado"; fi
+          if [ -z "$GOOGLE_SHEETS_JSON" ]; then echo "❌ Erro: GOOGLE_SHEETS_JSON não configurado"; exit 1; fi
+          echo "✅ Segredos detectados."
 
-      - name: Rodar Script de Sincronização
+      - name: Rodar Script
         env:
           GOOGLE_SHEETS_JSON: ${{ secrets.GOOGLE_SHEETS_JSON }}
           CONTA_AZUL_CLIENT_ID: ${{ secrets.CONTA_AZUL_CLIENT_ID }}
           CONTA_AZUL_CLIENT_SECRET: ${{ secrets.CONTA_AZUL_CLIENT_SECRET }}
+        # O comando abaixo ajuda a mostrar erros mais detalhados
         run: python app.py
