@@ -21,9 +21,20 @@ jobs:
         run: |
           pip install pandas requests gspread oauth2client
 
+      # --- NOVO PASSO DE TESTE ---
+      - name: Verificar Segredos (Sem expor valores)
+        env:
+          GOOGLE_SHEETS_JSON: ${{ secrets.GOOGLE_SHEETS_JSON }}
+          CONTA_AZUL_CLIENT_ID: ${{ secrets.CONTA_AZUL_CLIENT_ID }}
+          CONTA_AZUL_CLIENT_SECRET: ${{ secrets.CONTA_AZUL_CLIENT_SECRET }}
+        run: |
+          echo "Verificando variáveis de ambiente..."
+          if [ -z "$GOOGLE_SHEETS_JSON" ]; then echo "❌ Erro: GOOGLE_SHEETS_JSON está vazio"; exit 1; else echo "✅ GOOGLE_SHEETS_JSON carregado"; fi
+          if [ -z "$CONTA_AZUL_CLIENT_ID" ]; then echo "❌ Erro: CLIENT_ID está vazio"; exit 1; else echo "✅ CLIENT_ID carregado"; fi
+          if [ -z "$CONTA_AZUL_CLIENT_SECRET" ]; then echo "❌ Erro: CLIENT_SECRET está vazio"; exit 1; else echo "✅ CLIENT_SECRET carregado"; fi
+
       - name: Rodar Script de Sincronização
         env:
-          # Segredos que você deve cadastrar no GitHub (Settings > Secrets and variables > Actions)
           GOOGLE_SHEETS_JSON: ${{ secrets.GOOGLE_SHEETS_JSON }}
           CONTA_AZUL_CLIENT_ID: ${{ secrets.CONTA_AZUL_CLIENT_ID }}
           CONTA_AZUL_CLIENT_SECRET: ${{ secrets.CONTA_AZUL_CLIENT_SECRET }}
