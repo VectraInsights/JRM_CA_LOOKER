@@ -1,0 +1,30 @@
+name: Sincronizar Conta Azul para Looker
+
+on:
+  schedule:
+    - cron: '0 9 * * *' 
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar código do GitHub
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar bibliotecas
+        run: |
+          pip install pandas requests gspread oauth2client
+
+      - name: Rodar Script de Sincronização
+        env:
+          # Segredos que você deve cadastrar no GitHub (Settings > Secrets and variables > Actions)
+          GOOGLE_SHEETS_JSON: ${{ secrets.GOOGLE_SHEETS_JSON }}
+          CONTA_AZUL_CLIENT_ID: ${{ secrets.CONTA_AZUL_CLIENT_ID }}
+          CONTA_AZUL_CLIENT_SECRET: ${{ secrets.CONTA_AZUL_CLIENT_SECRET }}
+        run: python app.py
