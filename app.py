@@ -98,35 +98,34 @@ if ss:
             p_total.extend(pagar)
             r_total.extend(receber)
 
-    # --- 3. ATUALIZAÇÃO DA BASE DO LOOKER ---
+   # --- 3. ATUALIZAÇÃO DA BASE DO LOOKER ---
     if p_total or r_total:
         df_finais = pd.DataFrame(p_total + r_total)
         
-        # GARANTIA: Forçamos a coluna Valor a ser numérica (float)
-        # Se houver algum erro de conversão, ele vira 0 em vez de quebrar o script
+        # Garante que Valor seja numérico para o Looker somar corretamente
         df_finais['Valor'] = pd.to_numeric(df_finais['Valor'], errors='coerce').fillna(0)
         
         # Selecionamos as colunas na ordem correta
         df_finais = df_finais[['Vencimento', 'Empresa', 'Tipo', 'Valor']]
         
         try:
+            # Tenta encontrar ou criar a aba Base_Looker
             try:
                 worksheet = ss.worksheet("Base_Looker")
-            except:
+            except Exception:
                 worksheet = ss.add_worksheet(title="Base_Looker", rows="5000", cols="5")
             
+            # Limpa e atualiza os dados
             worksheet.clear()
-
-            # PREPARAÇÃO PARA O GOOGLE SHEETS:
-            # Mantemos as colunas Vencimento, Empresa e Tipo como string,
-            # mas o Valor será enviado como o número puro do Python.
-            cabecalho = df_finais.columns.values.tolist()
             
-            # Criamos a lista de dados. 
-            # Dica: O gspread aceita números nativos do Python (int/float)
+            cabecalho = [df_finais.columns.values.tolist()]
             corpo_dados = df_finais.values.tolist()
-            
-            exportar = [cabecalho] + corpo_dados
+            exportar = cabecalho + corpo_dados
             
             worksheet.update(exportar)
             print("Sincronização Finalizada! Dados enviados como números para o Looker.")
+            
+        except Exception as e:
+            print(f"Erro ao salvar na planilha: {e}")
+    else:
+        print("Nenhum dado encontrado para sincronizar.")
